@@ -136,16 +136,41 @@ try:
    )
    
    with geo_col:
+       st.write("Location Performance")
        fig_state = px.bar(
-           state_df.sort_values("Profit"), X="Profit",y="State",
+           state_df.sort_values("Profit"), x="Profit",y="State",
            orientation="h",color="Region",
            title="Top states by sales, ranked by profit",
-           hover_data={"sales": ":,.2f"},
+           hover_data={"Sales": ":,.2f"},
        )
        fig_state.add_vline(x=0, line_dash="dash")
        fig_state.update_layout(height=480,
                                margin=dict(l=10, r=10, t=50, b=10))
-       st.ploty_chart(fig_state, use_container_width= True)
+       st.plotly_chart(fig_state, use_container_width= True)
+       # shipping data
+   ship_df = (
+        filtered_df.groupby("Ship_Mode", as_index=False)
+        .agg(
+            Average_Shipping_Days=("Shipping_Days","mean"),
+            Sales=("Sales","sum"),
+            Profit=("Profit","sum"),
+            Orders=("Order_ID", "nunique"),
+        )
+    )
+# chart
+   with ship_col:
+        st.write("Operational Performace")
+        ship_chart = (
+            alt.Chart(ship_df).mark_bar()
+            .encode(
+                x=alt.X("Average_Shipping_Days:Q",
+                        title="Average shipping days"),
+                y=alt.Y("Ship_Mode:N", sort="-x", title=None,
+                        )
+            )
+            .properties(title="Delivery speed by ship mode", height=380)
+        )
+        st.altair_chart(ship_chart, use_container_width=True)
        
 except Exception as e:
        st.exception(e)
